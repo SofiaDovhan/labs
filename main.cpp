@@ -4,6 +4,7 @@
 using namespace std;
 
 class Book {
+private:
     string title;
     string author;
     int year;
@@ -26,6 +27,7 @@ public:
 };
 
 class Reader {
+private:
     string name;
     int ticketNumber;
 
