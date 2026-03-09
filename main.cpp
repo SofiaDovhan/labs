@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <utility>
 
 using namespace std;
 
@@ -19,16 +20,18 @@ public:
     {
         bookCount++;
     }
+
     // Конструктор копіювання
     Book(const Book& other)
-      : title(other.title), author(other.author), year(other.year)
+        : title(other.title), author(other.author), year(other.year)
     {
         cout << "Copy constructor\n";
         bookCount++;
     }
+
     // Конструктор переміщення
     Book(Book&& other)
-       : title(move(other.title)), author(move(other.author)), year(other.year)
+        : title(move(other.title)), author(move(other.author)), year(other.year)
     {
         cout << "Move constructor\n";
         bookCount++;
@@ -37,20 +40,24 @@ public:
     ~Book() {
         cout << "Книга \"" << title << "\" знищена\n";
     }
+
     // Використання this
     void setTitle(string title) {
         this->title = title;
     }
+
     // const метод
     void printInfo() const {
         cout << "Книга: " << title
              << ", Автор: " << author
              << ", Рік: " << year << endl;
     }
-// static метод
-static int getBookCount() {
-    return bookCount;
-}
+
+    // static метод
+    static int getBookCount() {
+        return bookCount;
+    }
+
     // Унарний оператор
     Book operator!() {
         Book temp = *this;
@@ -58,7 +65,7 @@ static int getBookCount() {
         return temp;
     }
 
-    //Бінарний оператор
+    // Бінарний оператор
     Book operator+(const Book& other) {
         Book temp;
         temp.title = this->title + " & " + other.title;
@@ -66,27 +73,33 @@ static int getBookCount() {
         temp.year = this->year;
         return temp;
     }
+
     // Дружній оператор <<
     friend ostream& operator<<(ostream& os, const Book& b);
 
-    //Дружній оператор >>
+    // Дружній оператор >>
     friend istream& operator>>(istream& is, Book& b);
 };
 
 int Book::bookCount = 0;
 
 ostream& operator<<(ostream& os, const Book& b) {
-    os << "Книга: " << b.title << ", Автор: " << b.author << ", Рік: " << b.year;
+    os << "Книга: " << b.title
+       << ", Автор: " << b.author
+       << ", Рік: " << b.year;
     return os;
 }
 
 istream& operator>>(istream& is, Book& b) {
     cout << "Введіть назву: ";
     is >> b.title;
+
     cout << "Введіть автора: ";
     is >> b.author;
+
     cout << "Введіть рік: ";
     is >> b.year;
+
     return is;
 }
 
@@ -99,10 +112,10 @@ public:
     Reader() : Reader("Без імені", 0) {}
 
     Reader(string n, int t)
-        : name(n), ticketNumber(t) {} // Перевантажений конструктор
+        : name(n), ticketNumber(t) {}
 
     ~Reader() {
-        cout << "Читач " << name << " видалений\n";   // Деструктор
+        cout << "Читач " << name << " видалений\n";
     }
 
     void showReader() const {
@@ -117,13 +130,13 @@ private:
     int experience;
 
 public:
-    Librarian() : name("Невідомий"), experience(0) {} // Конструктор за замовчуванням
+    Librarian() : name("Невідомий"), experience(0) {}
 
     Librarian(string n, int exp)
-        : name(n), experience(exp) {} // Конструктор з параметрами
+        : name(n), experience(exp) {}
 
     ~Librarian() {
-        cout << "Бібліотекар " << name << " звільнений\n"; // Деструктор
+        cout << "Бібліотекар " << name << " звільнений\n";
     }
 
     void info() const {
@@ -133,6 +146,7 @@ public:
 };
 
 int main() {
+
     Book b1;
     Book b2("1984", "Джордж Орвелл", 1949);
 
@@ -141,8 +155,12 @@ int main() {
 
     b1.printInfo();
     b2.printInfo();
+
     r1.showReader();
     l1.info();
+
+    cout << "Кількість створених книг: "
+         << Book::getBookCount() << endl;
 
     return 0;
 }
