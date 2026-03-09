@@ -9,11 +9,23 @@ private:
     string author;
     int year;
 
+    static int bookCount;
+
 public:
     Book() : Book("Невідома книга", "Невідомий автор", 0) {}
 
     Book(string t, string a, int y = 0)
-        : title(t), author(a), year(y) {}
+        : title(t), author(a), year(y)
+    {
+        bookCount++;
+    }
+    // Конструктор копіювання
+    Book(const Book& other)
+      : title(other.title), author(other.author), year(other.year)
+    {
+        cout << "Copy constructor\n";
+        bookCount++;
+    }
 
     ~Book() {
         cout << "Книга \"" << title << "\" знищена\n";
