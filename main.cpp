@@ -37,6 +37,10 @@ public:
     ~Book() {
         cout << "Книга \"" << title << "\" знищена\n";
     }
+    // Використання this
+    void setTitle(string title) {
+        this->title = title;
+    }
 
     void printInfo() const {
         cout << "Книга: " << title
