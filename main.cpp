@@ -26,6 +26,13 @@ public:
         cout << "Copy constructor\n";
         bookCount++;
     }
+    // Конструктор переміщення
+    Book(Book&& other)
+       : title(move(other.title)), author(move(other.author)), year(other.year)
+    {
+        cout << "Move constructor\n";
+        bookCount++;
+    }
 
     ~Book() {
         cout << "Книга \"" << title << "\" знищена\n";
