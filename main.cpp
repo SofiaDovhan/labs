@@ -51,6 +51,21 @@ public:
 static int getBookCount() {
     return bookCount;
 }
+    // Унарний оператор
+    Book operator!() {
+        Book temp = *this;
+        temp.year = -temp.year;
+        return temp;
+    }
+
+    //Бінарний оператор
+    Book operator+(const Book& other) {
+        Book temp;
+        temp.title = this->title + " & " + other.title;
+        temp.author = this->author;
+        temp.year = this->year;
+        return temp;
+    }
 
 class Reader {
 private:
