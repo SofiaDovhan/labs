@@ -66,6 +66,29 @@ static int getBookCount() {
         temp.year = this->year;
         return temp;
     }
+    // Дружній оператор <<
+    friend ostream& operator<<(ostream& os, const Book& b);
+
+    //Дружній оператор >>
+    friend istream& operator>>(istream& is, Book& b);
+};
+
+int Book::bookCount = 0;
+
+ostream& operator<<(ostream& os, const Book& b) {
+    os << "Книга: " << b.title << ", Автор: " << b.author << ", Рік: " << b.year;
+    return os;
+}
+
+istream& operator>>(istream& is, Book& b) {
+    cout << "Введіть назву: ";
+    is >> b.title;
+    cout << "Введіть автора: ";
+    is >> b.author;
+    cout << "Введіть рік: ";
+    is >> b.year;
+    return is;
+}
 
 class Reader {
 private:
