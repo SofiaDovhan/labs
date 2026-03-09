@@ -41,7 +41,7 @@ public:
     void setTitle(string title) {
         this->title = title;
     }
-
+    // const метод
     void printInfo() const {
         cout << "Книга: " << title
              << ", Автор: " << author
