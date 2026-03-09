@@ -47,7 +47,10 @@ public:
              << ", Автор: " << author
              << ", Рік: " << year << endl;
     }
-};
+// static метод
+static int getBookCount() {
+    return bookCount;
+}
 
 class Reader {
 private:
