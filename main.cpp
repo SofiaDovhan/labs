@@ -1,166 +1,179 @@
 #include <iostream>
 #include <string>
+#include <vector>
 #include <utility>
 
 using namespace std;
 
-class Book {
-private:
+   // БАЗОВИЙ КЛАС (IS-A)
+class LibraryItem {
+protected:
     string title;
+
+public:
+    LibraryItem(string t = "Невідомо") : title(t) {
+        cout << "LibraryItem створено\n";
+    }
+
+    virtual ~LibraryItem() {
+        cout << "LibraryItem знищено\n";
+    }
+
+    virtual void print() const {
+        cout << "Назва: " << title << endl;
+    }
+};
+
+   // КЛАС Book (наслідує)
+class Book : public LibraryItem {
+protected:
     string author;
     int year;
 
-    static int bookCount;
-
 public:
-    Book() : Book("Невідома книга", "Невідомий автор", 0) {}
+    Book() : Book("Невідома", "Невідомий", 0) {}
 
-    Book(string t, string a, int y = 0)
-        : title(t), author(a), year(y)
-    {
-        bookCount++;
-    }
+    Book(string t, string a, int y)
+        : LibraryItem(t), author(a), year(y) {}
 
-    // Конструктор копіювання
+    // Copy
     Book(const Book& other)
-        : title(other.title), author(other.author), year(other.year)
+        : LibraryItem(other.title),
+          author(other.author),
+          year(other.year)
     {
-        cout << "Copy constructor\n";
-        bookCount++;
+        cout << "Book Copy\n";
     }
 
-    // Конструктор переміщення
+    // Move
     Book(Book&& other)
-        : title(move(other.title)), author(move(other.author)), year(other.year)
+        : LibraryItem(move(other.title)),
+          author(move(other.author)),
+          year(other.year)
     {
-        cout << "Move constructor\n";
-        bookCount++;
+        cout << "Book Move\n";
+    }
+
+    // operator=
+    Book& operator=(const Book& other) {
+        if (this != &other) {
+            title = other.title;
+            author = other.author;
+            year = other.year;
+        }
+        return *this;
     }
 
     ~Book() {
-        cout << "Книга \"" << title << "\" знищена\n";
+        cout << "Book знищено\n";
     }
 
-    // Використання this
-    void setTitle(string title) {
-        this->title = title;
-    }
-
-    // const метод
-    void printInfo() const {
+    void print() const override {
         cout << "Книга: " << title
              << ", Автор: " << author
              << ", Рік: " << year << endl;
     }
-
-    // static метод
-    static int getBookCount() {
-        return bookCount;
-    }
-
-    // Унарний оператор
-    Book operator!() {
-        Book temp = *this;
-        temp.year = -temp.year;
-        return temp;
-    }
-
-    // Бінарний оператор
-    Book operator+(const Book& other) {
-        Book temp;
-        temp.title = this->title + " & " + other.title;
-        temp.author = this->author;
-        temp.year = this->year;
-        return temp;
-    }
-
-    // Дружній оператор <<
-    friend ostream& operator<<(ostream& os, const Book& b);
-
-    // Дружній оператор >>
-    friend istream& operator>>(istream& is, Book& b);
 };
-
-int Book::bookCount = 0;
-
-ostream& operator<<(ostream& os, const Book& b) {
-    os << "Книга: " << b.title
-       << ", Автор: " << b.author
-       << ", Рік: " << b.year;
-    return os;
-}
-
-istream& operator>>(istream& is, Book& b) {
-    cout << "Введіть назву: ";
-    is >> b.title;
-
-    cout << "Введіть автора: ";
-    is >> b.author;
-
-    cout << "Введіть рік: ";
-    is >> b.year;
-
-    return is;
-}
-
-class Reader {
+   // ДОЧІРНІЙ КЛАС (IS-A)
+class EBook : public Book {
 private:
-    string name;
-    int ticketNumber;
+    double fileSize;
 
 public:
-    Reader() : Reader("Без імені", 0) {}
+    EBook(string t, string a, int y, double size)
+        : Book(t, a, y), fileSize(size) {}
 
-    Reader(string n, int t)
-        : name(n), ticketNumber(t) {}
-
-    ~Reader() {
-        cout << "Читач " << name << " видалений\n";
+    ~EBook() {
+        cout << "EBook знищено\n";
     }
 
-    void showReader() const {
+    void print() const override {
+        cout << "EBook: " << title
+             << ", розмір: " << fileSize << "MB\n";
+    }
+};
+
+
+   // БАЗОВИЙ КЛАС Person
+class Person {
+protected:
+    string name;
+
+public:
+    Person(string n = "Невідомий") : name(n) {}
+
+    virtual void info() const {
+        cout << "Ім’я: " << name << endl;
+    }
+
+    virtual ~Person() {}
+};
+
+   //Reader (IS-A Person)
+class Reader : public Person {
+private:
+    int ticket;
+
+public:
+    Reader(string n, int t) : Person(n), ticket(t) {}
+
+    void info() const override {
         cout << "Читач: " << name
-             << ", Квиток №" << ticketNumber << endl;
+             << ", квиток: " << ticket << endl;
     }
 };
 
-class Librarian {
+// Librarian (IS-A Person)
+class Librarian : public Person {
 private:
-    string name;
-    int experience;
+    int exp;
 
 public:
-    Librarian() : name("Невідомий"), experience(0) {}
+    Librarian(string n, int e) : Person(n), exp(e) {}
 
-    Librarian(string n, int exp)
-        : name(n), experience(exp) {}
+    void info() const override {
+        cout << "Бібліотекар: " << name
+             << ", стаж: " << exp << endl;
+    }
+};
 
-    ~Librarian() {
-        cout << "Бібліотекар " << name << " звільнений\n";
+//КОМПОЗИЦІЯ (HAS-A)
+class Library {
+private:
+    vector<Book> books;
+
+public:
+    void addBook(const Book& b) {
+        books.push_back(b);
     }
 
-    void info() const {
-        cout << "Бібліотекар: " << name
-             << ", стаж: " << experience << " років\n";
+    void showBooks() const {
+        for (const auto& b : books) {
+            b.print();
+        }
     }
 };
 
 int main() {
 
-    Book b1;
-    Book b2("1984", "Джордж Орвелл", 1949);
+    Book b1("1984", "Орвелл", 1949);
+    EBook eb("C++ Guide", "Bjarne", 2020, 5.5);
 
-    Reader r1("Софія", 1234);
-    Librarian l1("Олена", 10);
+    Reader r("Софія", 123);
+    Librarian l("Олена", 10);
 
-    b1.printInfo();
-    b2.printInfo();
+    Library lib;
+    lib.addBook(b1);
 
-    r1.showReader();
-    l1.info();
+    cout << "\n--- Вивід ---\n";
+    b1.print();
+    eb.print();
 
-    cout << "Кількість створених книг: "
-         << Book::getBookCount() << endl;
+    r.info();
+    l.info();
+
+    cout << "\n--- Бібліотека ---\n";
+    lib.showBooks();
 
     return 0;
 }
