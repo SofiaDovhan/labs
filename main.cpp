@@ -5,7 +5,7 @@
 
 using namespace std;
 
-   // БАЗОВИЙ КЛАС (IS-A)
+   // БАЗОВИЙ КЛАС (IS-A) - наслідування (успадковує властивості іншого)
 class LibraryItem {
 protected:
     string title;
@@ -24,7 +24,7 @@ public:
     }
 };
 
-   // КЛАС Book (наслідує)
+   // КЛАС Book (наслідує) - з базового класу доступне в дочірньому
 class Book : public LibraryItem {
 protected:
     string author;
@@ -55,8 +55,9 @@ public:
     }
 
     // operator=
-    Book& operator=(const Book& other) {
+    Book& operator=(const Book& other){
         if (this != &other) {
+            LibraryItem::operator=(other);
             title = other.title;
             author = other.author;
             year = other.year;
