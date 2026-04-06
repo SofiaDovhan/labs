@@ -5,8 +5,14 @@
 
 using namespace std;
 
-   // БАЗОВИЙ КЛАС (IS-A) - наслідування (успадковує властивості іншого)
-class LibraryItem {
+// Інтерфейс (8) - він тільки з virtual function
+class Printable {
+public:
+    virtual void print() const = 0;
+};
+
+//БАЗОВИЙ КЛАС (абстрактний)
+class LibraryItem : public Printable {
 protected:
     string title;
 
@@ -15,16 +21,17 @@ public:
         cout << "LibraryItem створено\n";
     }
 
+    //Віртуальні функції - викликає правильний метод під час виконання
+    virtual void print() const = 0; // pure virtual function - змушує  дочірні класи реалізувати
+    virtual void info() const {
+        cout << "Базова інформація\n";
+    }
+
+    //Віртуальний деструктор - треба щоб правильно звільнялася пам'ять
     virtual ~LibraryItem() {
         cout << "LibraryItem знищено\n";
     }
-
-    virtual void print() const {
-        cout << "Назва: " << title << endl;
-    }
 };
-
-   // КЛАС Book (наслідує) - з базового класу доступне в дочірньому
 class Book : public LibraryItem {
 protected:
     string author;
@@ -55,9 +62,8 @@ public:
     }
 
     // operator=
-    Book& operator=(const Book& other){
+    Book& operator=(const Book& other) {
         if (this != &other) {
-            LibraryItem::operator=(other);
             title = other.title;
             author = other.author;
             year = other.year;
@@ -69,14 +75,21 @@ public:
         cout << "Book знищено\n";
     }
 
+    //Override - використовується в дочірньому класі, а virtual - для базового
     void print() const override {
         cout << "Книга: " << title
              << ", Автор: " << author
              << ", Рік: " << year << endl;
     }
+
+    void info() const override {
+        cout << "Інформація про книгу\n";
+    }
 };
-   // ДОЧІРНІЙ КЛАС (IS-A)
-class EBook : public Book {
+
+// FINAL КЛАС (5) - після цього класу не можна наслідувати або його не можна визначити
+
+class EBook final : public Book {
 private:
     double fileSize;
 
@@ -94,23 +107,20 @@ public:
     }
 };
 
-
-   // БАЗОВИЙ КЛАС Person
-class Person {
+class Person : public Printable {
 protected:
     string name;
 
 public:
     Person(string n = "Невідомий") : name(n) {}
 
-    virtual void info() const {
+    virtual void print() const override {
         cout << "Ім’я: " << name << endl;
     }
 
     virtual ~Person() {}
 };
 
-   //Reader (IS-A Person)
 class Reader : public Person {
 private:
     int ticket;
@@ -118,13 +128,12 @@ private:
 public:
     Reader(string n, int t) : Person(n), ticket(t) {}
 
-    void info() const override {
+    void print() const override {
         cout << "Читач: " << name
              << ", квиток: " << ticket << endl;
     }
 };
 
-// Librarian (IS-A Person)
 class Librarian : public Person {
 private:
     int exp;
@@ -132,13 +141,13 @@ private:
 public:
     Librarian(string n, int e) : Person(n), exp(e) {}
 
-    void info() const override {
+    void print() const override {
         cout << "Бібліотекар: " << name
              << ", стаж: " << exp << endl;
     }
 };
 
-//КОМПОЗИЦІЯ (HAS-A)
+// КОМПОЗИЦІЯ
 class Library {
 private:
     vector<Book> books;
@@ -155,26 +164,37 @@ public:
     }
 };
 
+// ФУНКЦІЯ (reference) (6) -передаємо будь який об'єкт-нащадок
+void show(const LibraryItem& item) {
+    item.print();
+}
+
 int main() {
 
+    cout << "=== Static binding ===\n";
     Book b1("1984", "Орвелл", 1949);
-    EBook eb("C++ Guide", "Bjarne", 2020, 5.5);
+    b1.print(); // статична прив’язка - Метод визначається на етапі компіляції
 
-    Reader r("Софія", 123);
-    Librarian l("Олена", 10);
+    cout << "\n=== Dynamic polymorphism (pointer) ===\n";
+    LibraryItem* ptr = new Book("C++", "Bjarne", 2000);
+    ptr->print();
 
+    cout << "\n=== Dynamic polymorphism (reference) ===\n";
+    EBook eb("Guide", "Author", 2020, 5.5);
+    show(b1);
+    show(eb);
+
+    cout << "\n=== Інтерфейс (Printable) ===\n";
+    Printable* p = new Reader("Софія", 123);
+    p->print();
+
+    cout << "\n=== Композиція ===\n";
     Library lib;
     lib.addBook(b1);
-
-    cout << "\n--- Вивід ---\n";
-    b1.print();
-    eb.print();
-
-    r.info();
-    l.info();
-
-    cout << "\n--- Бібліотека ---\n";
     lib.showBooks();
+
+    delete ptr;
+    delete p;
 
     return 0;
 }
