@@ -20,9 +20,6 @@ public:
     LibraryItem(string t = "Невідомо") : title(t) {}
 
     virtual void print() const = 0;
-    virtual void info() const {
-        cout << "Базова інформація\n";
-    }
 
     virtual ~LibraryItem() {}
 };
@@ -38,7 +35,6 @@ public:
     Book(string t, string a, int y)
         : LibraryItem(t), author(a), year(y) {}
 
-    // гетери
     string getTitle() const { return title; }
     string getAuthor() const { return author; }
     int getYear() const { return year; }
@@ -50,59 +46,7 @@ public:
     }
 };
 
-class EBook final : public Book {
-private:
-    double fileSize;
-
-public:
-    EBook(string t, string a, int y, double size)
-        : Book(t, a, y), fileSize(size) {}
-
-    void print() const override {
-        cout << "EBook: " << title
-             << ", розмір: " << fileSize << "MB\n";
-    }
-};
-
-class Person : public Printable {
-protected:
-    string name;
-
-public:
-    Person(string n = "Невідомий") : name(n) {}
-
-    void print() const override {
-        cout << "Ім’я: " << name << endl;
-    }
-};
-
-class Reader : public Person {
-private:
-    int ticket;
-
-public:
-    Reader(string n, int t) : Person(n), ticket(t) {}
-
-    void print() const override {
-        cout << "Читач: " << name
-             << ", квиток: " << ticket << endl;
-    }
-};
-
-class Librarian : public Person {
-private:
-    int exp;
-
-public:
-    Librarian(string n, int e) : Person(n), exp(e) {}
-
-    void print() const override {
-        cout << "Бібліотекар: " << name
-             << ", стаж: " << exp << endl;
-    }
-};
-
-// КОМПОЗИЦІЯ + ФАЙЛИ
+// КОМПОЗИЦІЯ
 class Library {
 private:
     vector<Book> books;
@@ -118,34 +62,54 @@ public:
         }
     }
 
-    // збереження
+    // Збереження з обробкою помилки
     void saveToFile() {
-        ofstream file("books.txt");
-        for (const auto& b : books) {
-            file << b.getTitle() << " "
-                 << b.getAuthor() << " "
-                 << b.getYear() << endl;
+        try {
+            ofstream file("books.txt");
+
+            if (!file) {
+                throw "Помилка запису у файл!";
+            }
+
+            for (const auto& b : books) {
+                file << b.getTitle() << " "
+                     << b.getAuthor() << " "
+                     << b.getYear() << endl;
+            }
+
+        } catch (const char* msg) {
+            cout << msg << endl;
         }
     }
 
-    // завантаження
+    // Завантаження з обробкою помилки
     void loadFromFile() {
-        ifstream file("books.txt");
-        string t, a;
-        int y;
+        try {
+            ifstream file("books.txt");
 
-        while (file >> t >> a >> y) {
-            books.push_back(Book(t, a, y));
+            if (!file) {
+                throw "Файл не знайдено!";
+            }
+
+            string t, a;
+            int y;
+
+            while (file >> t >> a >> y) {
+                books.push_back(Book(t, a, y));
+            }
+
+        } catch (const char* msg) {
+            cout << msg << endl;
         }
     }
 };
-// КОНСОЛЬНЕ МЕНЮ
-// Меню адміністратора
+
+// АДМІН МЕНЮ
 void adminMenu(Library& lib) {
     string password;
     cout << "Пароль: ";
     cin >> password;
-   //  Аутентифікація —перевірка користувача.
+
     if (password != "1234") {
         cout << "Невірний пароль!\n";
         return;
@@ -161,25 +125,32 @@ void adminMenu(Library& lib) {
     cout << "Рік: ";
     cin >> y;
 
+    // перевірка вводу
+    if (cin.fail()) {
+        cout << "Помилка вводу року!\n";
+        cin.clear();
+        cin.ignore(1000, '\n');
+        return;
+    }
+
     lib.addBook(Book(t, a, y));
     lib.saveToFile();
+
+    // ІСТОРІЯ
+    ofstream history("history.txt", ios::app);
+    history << "Адміністратор додав книгу: " << t << endl;
 
     cout << "Книгу додано!\n";
 }
 
-// Меню користувача
+// КОРИСТУВАЧ
 void userMenu(Library& lib) {
     lib.showBooks();
 
+    // ІСТОРІЯ
     ofstream history("history.txt", ios::app);
-    history << "Перегляд книг\n";
+    history << "Користувач переглянув книги\n";
 }
-
-// reference
-void show(const LibraryItem& item) {
-    item.print();
-}
-
 int main() {
 
     Library lib;
@@ -187,23 +158,37 @@ int main() {
 
     int choice;
 
-    cout << "1. Адміністратор\n";
-    cout << "2. Користувач\n";
-    cin >> choice;
+    while (true) {
+        cout << "\nМЕНЮ\n";
+        cout << "1. Адміністратор\n";
+        cout << "2. Користувач\n";
+        cout << "3. Вихід\n";
+        cout << "Ваш вибір: ";
 
-    if (choice == 1) {
-        adminMenu(lib);
+        cin >> choice;
+
+        // перевірка вводу
+        if (cin.fail()) {
+            cout << "Помилка вводу!\n";
+            cin.clear();
+            cin.ignore(1000, '\n');
+            continue;
+        }
+
+        if (choice == 1) {
+            adminMenu(lib);
+        }
+        else if (choice == 2) {
+            userMenu(lib);
+        }
+        else if (choice == 3) {
+            cout << "Вихід з програми\n";
+            break; // вихід
+        }
+        else {
+            cout << "Невірний вибір!\n";
+        }
     }
-    else if (choice == 2) {
-        userMenu(lib);
-    }
-
-    cout << "\nПоліморфізм\n";
-    Book b1("1984", "Орвелл", 1949);
-    EBook eb("Guide", "Author", 2020, 5.5);
-
-    show(b1);
-    show(eb);
 
     return 0;
 }
