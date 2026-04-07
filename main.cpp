@@ -1,37 +1,32 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <utility>
+#include <fstream>
 
 using namespace std;
 
-// Інтерфейс (8) - він тільки з virtual function
+// Інтерфейс
 class Printable {
 public:
     virtual void print() const = 0;
 };
 
-//БАЗОВИЙ КЛАС (абстрактний)
+// Базовий клас
 class LibraryItem : public Printable {
 protected:
     string title;
 
 public:
-    LibraryItem(string t = "Невідомо") : title(t) {
-        cout << "LibraryItem створено\n";
-    }
+    LibraryItem(string t = "Невідомо") : title(t) {}
 
-    //Віртуальні функції - викликає правильний метод під час виконання
-    virtual void print() const = 0; // pure virtual function - змушує  дочірні класи реалізувати
+    virtual void print() const = 0;
     virtual void info() const {
         cout << "Базова інформація\n";
     }
 
-    //Віртуальний деструктор - треба щоб правильно звільнялася пам'ять
-    virtual ~LibraryItem() {
-        cout << "LibraryItem знищено\n";
-    }
+    virtual ~LibraryItem() {}
 };
+
 class Book : public LibraryItem {
 protected:
     string author;
@@ -43,51 +38,17 @@ public:
     Book(string t, string a, int y)
         : LibraryItem(t), author(a), year(y) {}
 
-    // Copy
-    Book(const Book& other)
-        : LibraryItem(other.title),
-          author(other.author),
-          year(other.year)
-    {
-        cout << "Book Copy\n";
-    }
+    // гетери
+    string getTitle() const { return title; }
+    string getAuthor() const { return author; }
+    int getYear() const { return year; }
 
-    // Move
-    Book(Book&& other)
-        : LibraryItem(move(other.title)),
-          author(move(other.author)),
-          year(other.year)
-    {
-        cout << "Book Move\n";
-    }
-
-    // operator=
-    Book& operator=(const Book& other) {
-        if (this != &other) {
-            title = other.title;
-            author = other.author;
-            year = other.year;
-        }
-        return *this;
-    }
-
-    ~Book() {
-        cout << "Book знищено\n";
-    }
-
-    //Override - використовується в дочірньому класі, а virtual - для базового
     void print() const override {
         cout << "Книга: " << title
              << ", Автор: " << author
              << ", Рік: " << year << endl;
     }
-
-    void info() const override {
-        cout << "Інформація про книгу\n";
-    }
 };
-
-// FINAL КЛАС (5) - після цього класу не можна наслідувати або його не можна визначити
 
 class EBook final : public Book {
 private:
@@ -96,10 +57,6 @@ private:
 public:
     EBook(string t, string a, int y, double size)
         : Book(t, a, y), fileSize(size) {}
-
-    ~EBook() {
-        cout << "EBook знищено\n";
-    }
 
     void print() const override {
         cout << "EBook: " << title
@@ -114,11 +71,9 @@ protected:
 public:
     Person(string n = "Невідомий") : name(n) {}
 
-    virtual void print() const override {
+    void print() const override {
         cout << "Ім’я: " << name << endl;
     }
-
-    virtual ~Person() {}
 };
 
 class Reader : public Person {
@@ -147,7 +102,7 @@ public:
     }
 };
 
-// КОМПОЗИЦІЯ
+// КОМПОЗИЦІЯ + ФАЙЛИ
 class Library {
 private:
     vector<Book> books;
@@ -162,39 +117,93 @@ public:
             b.print();
         }
     }
-};
 
-// ФУНКЦІЯ (reference) (6) -передаємо будь який об'єкт-нащадок
+    // збереження
+    void saveToFile() {
+        ofstream file("books.txt");
+        for (const auto& b : books) {
+            file << b.getTitle() << " "
+                 << b.getAuthor() << " "
+                 << b.getYear() << endl;
+        }
+    }
+
+    // завантаження
+    void loadFromFile() {
+        ifstream file("books.txt");
+        string t, a;
+        int y;
+
+        while (file >> t >> a >> y) {
+            books.push_back(Book(t, a, y));
+        }
+    }
+};
+// КОНСОЛЬНЕ МЕНЮ
+// Меню адміністратора
+void adminMenu(Library& lib) {
+    string password;
+    cout << "Пароль: ";
+    cin >> password;
+   //  Аутентифікація —перевірка користувача.
+    if (password != "1234") {
+        cout << "Невірний пароль!\n";
+        return;
+    }
+
+    string t, a;
+    int y;
+
+    cout << "Назва: ";
+    cin >> t;
+    cout << "Автор: ";
+    cin >> a;
+    cout << "Рік: ";
+    cin >> y;
+
+    lib.addBook(Book(t, a, y));
+    lib.saveToFile();
+
+    cout << "Книгу додано!\n";
+}
+
+// Меню користувача
+void userMenu(Library& lib) {
+    lib.showBooks();
+
+    ofstream history("history.txt", ios::app);
+    history << "Перегляд книг\n";
+}
+
+// reference
 void show(const LibraryItem& item) {
     item.print();
 }
 
 int main() {
 
-    cout << "=== Static binding ===\n";
+    Library lib;
+    lib.loadFromFile();
+
+    int choice;
+
+    cout << "1. Адміністратор\n";
+    cout << "2. Користувач\n";
+    cin >> choice;
+
+    if (choice == 1) {
+        adminMenu(lib);
+    }
+    else if (choice == 2) {
+        userMenu(lib);
+    }
+
+    cout << "\nПоліморфізм\n";
     Book b1("1984", "Орвелл", 1949);
-    b1.print(); // статична прив’язка - Метод визначається на етапі компіляції
-
-    cout << "\n=== Dynamic polymorphism (pointer) ===\n";
-    LibraryItem* ptr = new Book("C++", "Bjarne", 2000);
-    ptr->print();
-
-    cout << "\n=== Dynamic polymorphism (reference) ===\n";
     EBook eb("Guide", "Author", 2020, 5.5);
+
     show(b1);
     show(eb);
-
-    cout << "\n=== Інтерфейс (Printable) ===\n";
-    Printable* p = new Reader("Софія", 123);
-    p->print();
-
-    cout << "\n=== Композиція ===\n";
-    Library lib;
-    lib.addBook(b1);
-    lib.showBooks();
-
-    delete ptr;
-    delete p;
 
     return 0;
 }
